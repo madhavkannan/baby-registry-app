@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { store } from "./data/store";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { store } from "./data";
 import { DEFAULT_CATEGORIES } from "./data/categories";
 import type { NewRegistryItem, RegistryItem } from "./data/types";
 import RegistryItemRow from "./components/RegistryItemRow";
@@ -12,10 +12,32 @@ export default function App() {
   const [adding, setAdding] = useState(false);
   const [hideChecked, setHideChecked] = useState(false);
 
-  useEffect(() => {
-    setItems(store.listItems());
-    setTitle(store.getTitle());
+  const load = useCallback(async () => {
+    const [loadedItems, loadedTitle] = await Promise.all([
+      store.listItems(),
+      store.getTitle(),
+    ]);
+    setItems(loadedItems);
+    setTitle(loadedTitle);
   }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  // Pick up the other person's edits when this tab regains focus, since data
+  // may now live in a shared backend instead of only this device's storage.
+  useEffect(() => {
+    function onVisible() {
+      if (document.visibilityState === "visible") void load();
+    }
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onVisible);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onVisible);
+    };
+  }, [load]);
 
   const categories = useMemo(() => {
     const used = Array.from(new Set(items.map((i) => i.category)));
@@ -38,35 +60,35 @@ export default function App() {
 
   const checkedCount = items.filter((i) => i.checked).length;
 
-  function saveTitle(next: string) {
+  async function saveTitle(next: string) {
     const trimmed = next.trim() || "Baby Registry";
     setTitle(trimmed);
-    store.setTitle(trimmed);
     setEditingTitle(false);
+    await store.setTitle(trimmed);
   }
 
-  function toggle(item: RegistryItem, checked: boolean) {
-    store.updateItem(item.id, {
+  async function toggle(item: RegistryItem, checked: boolean) {
+    await store.updateItem(item.id, {
       checked,
       checkedAt: checked ? new Date().toISOString() : null,
     });
-    setItems(store.listItems());
+    await load();
   }
 
-  function togglePriority(item: RegistryItem) {
-    store.updateItem(item.id, { priority: !item.priority });
-    setItems(store.listItems());
+  async function togglePriority(item: RegistryItem) {
+    await store.updateItem(item.id, { priority: !item.priority });
+    await load();
   }
 
-  function remove(item: RegistryItem) {
-    store.removeItem(item.id);
-    setItems(store.listItems());
+  async function remove(item: RegistryItem) {
+    await store.removeItem(item.id);
+    await load();
   }
 
-  function addItem(newItem: NewRegistryItem) {
-    store.addItem(newItem);
+  async function addItem(newItem: NewRegistryItem) {
+    await store.addItem(newItem);
     setAdding(false);
-    setItems(store.listItems());
+    await load();
   }
 
   return (
@@ -76,9 +98,9 @@ export default function App() {
           <input
             autoFocus
             defaultValue={title}
-            onBlur={(e) => saveTitle(e.target.value)}
+            onBlur={(e) => void saveTitle(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter") saveTitle(e.currentTarget.value);
+              if (e.key === "Enter") void saveTitle(e.currentTarget.value);
               if (e.key === "Escape") setEditingTitle(false);
             }}
             className="rounded-lg border border-accent/40 bg-white px-2 py-1 text-lg font-semibold tracking-tight outline-none"
