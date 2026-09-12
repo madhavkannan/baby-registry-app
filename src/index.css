@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+@theme {
+  --color-page: #faf7f1;
+  --color-panel: #efe6d6;
+  --color-panel-deep: #e3d7bf;
+  --color-accent: #2f5d3a;
+  --color-accent-deep: #26492f;
+  --color-ink: #121212;
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+}
+
+html {
+  background: var(--color-page);
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+  -webkit-tap-highlight-color: transparent;
+}
