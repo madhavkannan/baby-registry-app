@@ -95,7 +95,7 @@ export default function App() {
           onClick={() => setHideChecked((v) => !v)}
           className="rounded-full px-3 py-2 text-sm font-medium text-ink/80 active:bg-panel"
         >
-          {hideChecked ? "Show all" : "Hide got"}
+          {hideChecked ? "Show all" : "Hide completed"}
         </button>
       </header>
 
@@ -104,7 +104,7 @@ export default function App() {
           <span className="text-sm font-semibold">
             {items.length === 0
               ? "No items yet"
-              : `${checkedCount} of ${items.length} got`}
+              : `${checkedCount} of ${items.length} completed`}
           </span>
         </div>
         {items.length > 0 && (

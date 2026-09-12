@@ -47,14 +47,14 @@ export default function RegistryItemRow({
               </svg>
             )}
           </span>
-          <span className="min-w-0">
-            <span className="block truncate text-[15px] font-medium">
+          <span className="min-w-0 py-0.5">
+            <span className="block break-words text-[15px] font-medium">
               {item.priority && !item.checked ? "★ " : ""}
               {item.name}
             </span>
             {item.notes && (
               <span
-                className={`block truncate text-xs ${
+                className={`block break-words text-xs ${
                   item.checked ? "text-white/75" : "text-ink/60"
                 }`}
               >
